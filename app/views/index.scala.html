@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <!-- stylesheets -->
+    <link rel="stylesheet" type="text/css" href="assets/stylesheets/calendar.css" />
+
+    <!-- javascript -->
+    <script src="assets/javascripts/d3.v3.min.js"></script>
+    <script src="assets/javascripts/jquery-1.9.0.min.js"></script>
+    <script src="assets/javascripts/calendar.js"></script>
+<head/>
+<body>
+<form>
+Enter Username or id: <input type="text" id="userIdBox" >
+<input name="buttonExecute" onclick="rc(document.getElementById('userIdBox').value)" type="button" value="Submit" />
+</form>
+
+<div class="calendarContainer" id="calendar"/>
+<script>
+    function rc(value) {
+        var containerNode = d3.select("div.calendarContainer");
+        // Make sure we clear out old data (if ther eis any)
+        $('.calendarContainer').empty();
+        renderCalendar(containerNode, value);
+    }
+</script>
+</body>
