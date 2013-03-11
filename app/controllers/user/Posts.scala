@@ -24,6 +24,8 @@ object Posts extends Controller {
           NotFound( "User %s not found. Try again with a valid user.".format(id))
         } else if (te.getStatusCode == 401) {
           Unauthorized("%s's posts are protected! Try again with another user.".format(id))
+        } else if (te.getStatusCode == 429) {
+          TooManyRequest("We're going too fast for Twitter. Try again in %.1f minutes".format(te.getRateLimitStatus.getSecondsUntilReset/60.0))
         } else {
           InternalServerError("Something went horribly wrong. Don't worry, I'm on it.")
         }
