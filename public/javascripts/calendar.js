@@ -1,7 +1,11 @@
-function renderCalendar(node, id) {
+function renderCalendar(nodeSelector, id) {
+    // Make sure we clear out old data (if there is any)
+    $(nodeSelector).empty();
+
     var width = 960,
         height = 136,
-        cellSize = 17; // cell size
+        cellSize = 17, // day cell size
+        maxYear = new Date().getFullYear() + 1;
 
     var day = d3.time.format("%w"),
         week = d3.time.format("%U"),
@@ -13,8 +17,8 @@ function renderCalendar(node, id) {
             return "q" + d + "-4";
         }));
 
-    var svg = node.selectAll("svg")
-        .data(d3.range(2009, 2014).reverse())
+    var svg = d3.select(nodeSelector).selectAll("svg")
+        .data(d3.range(2009, maxYear).reverse())
         .enter().append("svg")
         .attr("width", width)
         .attr("height", height)
@@ -60,33 +64,48 @@ function renderCalendar(node, id) {
 
     var url = "/" + id + "/posts"
     d3.json(url, function (error, json) {
-        d3.select("body").selectAll("svg")
-            .data(d3.range(2011, 2014).reverse())
+        // Handle error cases
+        if(error) {
+            $(nodeSelector).empty()
+            $(nodeSelector).append($("<h3 class='errorText'>" + error.responseText +"<h3/>"));
+            return;
+        }
 
+        // Build user profile
+        createUserProfile(json, nodeSelector)
+
+        // Process user activity data
         var data = d3.nest()
             .key(function (d) {
                 return d.date;
             })
             .rollup(function (d) {
-                return d[0].count;
+                return {count: d[0].count, sampleText: d[0].sampleText, sampleId: d[0].sampleId};
             })
-            .map(json);
-        console.log(data)
+            .map(json.postData);
 
+        // Render data
         rect.filter(function (d) {
             return d in data;
         })
             .attr("class", function (d) {
-                return "day " + color(data[d]);
+                return "day " + color(data[d].count);
+            })
+            .attr("onclick", function (d) {
+                var sampleId = data[d].sampleId
+                var userScreenName = json.userScreenName
+                return "window.location.href = 'http://www.twitter.com/"+userScreenName+"/status/"+sampleId+"/';"
             })
             .select("title")
             .text(function (d) {
-                if(data[d] > 1) {
-                    return d + ": " + data[d] + " tweets";
+                var count = data[d].count
+                var sampleText = data[d].sampleText
+                if(count > 1) {
+                    return d + ": " + count + " tweets. Sample:\n" + sampleText;
                 } else {
-                    return d + ": " + data[d] + " tweet";
+                    return d + ": " + count + " tweet.\n" + sampleText;
                 }
-            });
+            })
     });
 
     function monthPath(t0) {
@@ -101,4 +120,11 @@ function renderCalendar(node, id) {
     }
 
     d3.select(self.frameElement).style("height", "2910px");
+}
+
+function createUserProfile(userJson, parentSelector) {
+    var userInfoDiv = $("<div class='userInfo'>")
+    userInfoDiv.append("<img class='profileImageURL' width='73' height='73' src='" + userJson.profileImageURL + "'/>")
+    userInfoDiv.append("<h2 class='statusesCount'>" + userJson.statusesCount+" Posts</h2>")
+    $(parentSelector).prepend(userInfoDiv)
 }

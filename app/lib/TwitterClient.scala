@@ -2,6 +2,7 @@ package lib
 
 import twitter4j.{Status, ResponseList, Paging, TwitterFactory}
 import twitter4j.conf.ConfigurationBuilder
+import scala.collection.JavaConverters._
 import play.Play
 
 object TwitterClient {
@@ -23,18 +24,10 @@ object TwitterClient {
     tf.getInstance()
   }
 
-  def getUserTimeline(user:String):ResponseList[Status] = {
+  def getUserTimeline(user:String):List[Status] = {
     val paging:Paging = new Paging()
     paging.setCount(MAX_STATUSES)
 
-    val statuses = client.getUserTimeline(user, paging)
-    System.out.println("Showing friends timeline.")
-    val it = statuses.iterator()
-    while (it.hasNext()) {
-      val status = it.next()
-      println(status.getUser().getName() + ":" +
-        status.getText());
-    }
-    statuses
+    client.getUserTimeline(user, paging).asScala.toList
   }
 }
