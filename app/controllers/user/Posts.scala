@@ -8,12 +8,14 @@ import play.api.mvc._
 import views._
 
 import models._
-import lib.TwitterClient
+import lib.{SimpleLogger, TwitterClient}
 import twitter4j.{TwitterException}
 
 object Posts extends Controller {
 
-  def index(id: String) = Action {
+  def index(id: String) = Action { implicit request =>
+    SimpleLogger.logRequest(request, "id=%s".format(id))
+
     try {
       val status = getStatuses(id)
       Ok(status).as("application/json")
